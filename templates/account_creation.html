@@ -1,0 +1,12 @@
+<header>
+    <h1>Create Account</h1>
+</header>
+<main>
+    <form action="{{ url_for('account_creation') }}" method="post">
+        <input type="text" name="account_type" placeholder="Account Type" required>
+        <input type="text" name="initial_deposit" placeholder="Initial Deposit" required>
+        <button type="submit">Create Account</button>
+    </form>
+</main>
+</body>
+</html>

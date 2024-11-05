@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Dashboard - EasyBank</title>
+</head>
+<body>
+    <header>
+        <h1>Dashboard</h1>
+        <nav>
+            <a href="{{ url_for('transaction') }}">Transactions</a>
+            <a href="{{ url_for('check_balance') }}">Check Balance</a>
+            <a href="{{ url_for('deposit') }}">Deposit</a>
+            <a href="{{ url_for('statement') }}">Statements</a>
+            <a href="{{ url_for('account_login') }}">Account Login</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Welcome, {{ session['full_name'] }}!</h2>
+        <p>Your account balance is: $XXXX.XX</p>
+    </main>
+</body>
+</html>
