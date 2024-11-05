@@ -1,9 +1,16 @@
 from flask import Flask, render_template, request, redirect, session, url_for
+from flask_sqlalchemy import SQLAlchemy
 import mysql.connector
 
+# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# SQLAlchemy configuration (for SQLite or any other database if desired)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Replace with your actual SQLAlchemy DB URI
+db = SQLAlchemy(app)
+
+# MySQL configuration for direct SQL queries (e.g., account statements)
 def get_db_connection():
     connection = mysql.connector.connect(
         host='your-rds-endpoint',
@@ -13,6 +20,7 @@ def get_db_connection():
     )
     return connection
 
+# Route Definitions
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -20,14 +28,14 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Registration logic here
+        # Add registration logic
         pass
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Login logic here
+        # Add login logic
         pass
     return render_template('login.html')
 
@@ -46,21 +54,21 @@ def transaction():
 @app.route('/account-creation', methods=['GET', 'POST'])
 def account_creation():
     if 'user_id' in session:
-        # Account creation logic
+        # Add account creation logic
         pass
     return redirect(url_for('login'))
 
 @app.route('/check-balance')
 def check_balance():
     if 'user_id' in session:
-        # Logic to check balance
+        # Add logic to check balance
         return render_template('check_balance.html')
     return redirect(url_for('login'))
 
 @app.route('/deposit', methods=['GET', 'POST'])
 def deposit():
     if 'user_id' in session:
-        # Deposit logic
+        # Add deposit logic
         pass
     return redirect(url_for('login'))
 
@@ -79,7 +87,7 @@ def confirm():
 @app.route('/account-login', methods=['GET', 'POST'])
 def account_login():
     if request.method == 'POST':
-        # Account login logic
+        # Add account login logic
         pass
     return render_template('account_login.html')
 
@@ -101,5 +109,9 @@ def statements():
         return render_template('statement.html', transactions=transactions)
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
+# SQLAlchemy database table creation
+if __name__ == "__main__":
+    # Ensure tables are created if not existing (SQLAlchemy)
+    with app.app_context():
+        db.create_all()  # Creates database tables, if they don’t already exist
     app.run(debug=True)
