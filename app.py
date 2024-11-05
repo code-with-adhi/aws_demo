@@ -114,4 +114,4 @@ if __name__ == "__main__":
     # Ensure tables are created if not existing (SQLAlchemy)
     with app.app_context():
         db.create_all()  # Creates database tables, if they don’t already exist
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)  # Make app accessible externally
