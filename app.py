@@ -35,9 +35,13 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
+        try:
+            name = request.form['name']
+            email = request.form['email']
+            password = request.form['password']
+        except KeyError as e:
+            flash(f"Missing field in form: {str(e)}", "error")
+            return redirect(url_for('register'))
         
         if db.session.query(User).filter_by(email=email).first():
             flash('Email already exists. Please login or use a different email.', 'error')
@@ -55,8 +59,13 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if not email or not password:
+            flash('Please enter both email and password.', 'error')
+            return redirect(url_for('login'))
+        
         user = User.query.filter_by(email=email, password=password).first()
 
         if user:
@@ -79,8 +88,15 @@ def dashboard():
 def transaction():
     if 'user_id' in session:
         if request.method == 'POST':
-            recipient_id = request.form['recipient_id']
-            amount = float(request.form['amount'])
+            try:
+                recipient_id = request.form['recipient_id']
+                amount = float(request.form['amount'])
+            except KeyError as e:
+                flash(f"Missing field in form: {str(e)}", "error")
+                return redirect(url_for('transaction'))
+            except ValueError:
+                flash("Invalid amount entered.", "error")
+                return redirect(url_for('transaction'))
 
             connection = get_db_connection()
             cursor = connection.cursor()
@@ -107,27 +123,6 @@ def transaction():
         return render_template('transaction.html')
     return redirect(url_for('login'))
 
-@app.route('/account-creation', methods=['GET', 'POST'])
-def account_creation():
-    if 'user_id' in session:
-        if request.method == 'POST':
-            account_type = request.form['account_type']
-            initial_balance = float(request.form['initial_balance'])
-
-            connection = get_db_connection()
-            cursor = connection.cursor()
-
-            cursor.execute("INSERT INTO accounts (user_id, balance, account_type) VALUES (%s, %s, %s)", (session['user_id'], initial_balance, account_type))
-            connection.commit()
-
-            cursor.close()
-            connection.close()
-            flash("Account created successfully!", "success")
-            return redirect(url_for('dashboard'))
-
-        return render_template('account_creation.html')
-    return redirect(url_for('login'))
-
 @app.route('/check-balance')
 def check_balance():
     if 'user_id' in session:
@@ -142,62 +137,8 @@ def check_balance():
         return render_template('check_balance.html', balance=balance)
     return redirect(url_for('login'))
 
-@app.route('/deposit', methods=['GET', 'POST'])
-def deposit():
-    if 'user_id' in session:
-        if request.method == 'POST':
-            amount = float(request.form['deposit_amount'])
-            account_type = request.form['account_type']
-
-            connection = get_db_connection()
-            cursor = connection.cursor()
-
-            cursor.execute("UPDATE accounts SET balance = balance + %s WHERE user_id = %s AND account_type = %s", (amount, session['user_id'], account_type))
-            cursor.execute("INSERT INTO account_statements (user_id, transaction_type, transaction_amount, transaction_date) VALUES (%s, 'Credit', %s, %s)", (session['user_id'], amount, datetime.now()))
-
-            connection.commit()
-            cursor.close()
-            connection.close()
-            flash("Deposit successful!", "success")
-            return redirect(url_for('dashboard'))
-
-        return render_template('deposit.html')
-    return redirect(url_for('login'))
-
-@app.route('/services')
-def services():
-    return render_template('services.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/confirm')
-def confirm():
-    return render_template('confirm.html')
-
-@app.route('/account-login', methods=['GET', 'POST'])
-def account_login():
-    if request.method == 'POST':
-        # Placeholder for account login logic if needed
-        pass
-    return render_template('account_login.html')
-
-@app.route('/statement')
-def statements():
-    if 'user_id' in session:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT transaction_type, transaction_amount, transaction_date, description FROM account_statements WHERE user_id = %s ORDER BY transaction_date DESC", (session['user_id'],))
-        transactions = cursor.fetchall()
-        cursor.close()
-        connection.close()
-        return render_template('statement.html', transactions=transactions)
-    return redirect(url_for('login'))
-
 # SQLAlchemy database table creation
 if __name__ == "__main__":
-    # Ensure tables are created if not existing
     with app.app_context():
         db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
